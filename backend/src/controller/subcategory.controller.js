@@ -22,7 +22,7 @@ const createSubcategory = (req, res) => {
 
 const getSubcategories = (req, res) => {
   db.query(
-    `SELECT subcategories.id, subcategories.name, categories.name AS category 
+    `SELECT subcategories.id, subcategories.name, subcategories.category_id, categories.name AS category 
      FROM subcategories 
      JOIN categories ON subcategories.category_id = categories.id`,
     (err, results) => {
@@ -31,6 +31,40 @@ const getSubcategories = (req, res) => {
     }
   );
 };
+// ================== Get By ID ==============================
+
+const getSubcategoryById = (req, res) => {
+  const { id } = req.params;
+
+  db.query(
+    `SELECT subcategories.id, subcategories.name, categories.name AS category, categories.id AS category_id
+     FROM subcategories 
+     JOIN categories ON subcategories.category_id = categories.id
+     WHERE subcategories.id = ?`,
+    [id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err });
+      if (results.length === 0) {
+        return res.status(404).json({ message: "Subcategory not found" });
+      }
+      res.json(results[0]); // ek hi record milega
+    }
+  );
+};
+// ================== Get By CategoryId ==================
+const getSubcategoryByCategoryId = (req, res) => {
+  const { id } = req.params; // yaha id = category_id hoga
+  db.query(
+    "SELECT * FROM subcategories WHERE category_id = ?",
+    [id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err });
+      res.json(results);
+    }
+  );
+};
+
+
 // ================== Update ==============================
 
 const updateSubcategory = (req, res) => {
@@ -58,4 +92,4 @@ const deleteSubcategory = (req, res) => {
   });
 };
 
-module.exports = {createSubcategory,getSubcategories,updateSubcategory,deleteSubcategory,};
+module.exports = {createSubcategory,getSubcategories, getSubcategoryById, getSubcategoryByCategoryId, updateSubcategory,deleteSubcategory,};

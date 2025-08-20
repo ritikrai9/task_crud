@@ -4,6 +4,7 @@ import axios from "axios";
 export default function Category() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
+  const [editId, setEditId] = useState(null); // ✅ Track which category is being edited
 
   // ✅ Fetch categories
   const fetchCategories = async () => {
@@ -15,15 +16,22 @@ export default function Category() {
     }
   };
 
-  // ✅ Add category
-  const addCategory = async () => {
+  // ✅ Add or Update category
+  const saveCategory = async () => {
     if (!name.trim()) return alert("Please enter category name");
     try {
-      await axios.post("http://localhost:5000/category", { name });
+      if (editId) {
+        // ✅ Update existing category
+        await axios.put(`http://localhost:5000/category/${editId}`, { name });
+        setEditId(null);
+      } else {
+        // ✅ Add new category
+        await axios.post("http://localhost:5000/category", { name });
+      }
       setName("");
       fetchCategories();
     } catch (err) {
-      console.error("Error adding category", err);
+      console.error("Error saving category", err);
     }
   };
 
@@ -35,6 +43,12 @@ export default function Category() {
     } catch (err) {
       console.error("Error deleting category", err);
     }
+  };
+
+  // ✅ Set edit mode
+  const editCategory = (category) => {
+    setName(category.name);
+    setEditId(category.id);
   };
 
   useEffect(() => {
@@ -53,10 +67,12 @@ export default function Category() {
           placeholder="Category Name"
         />
         <button
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          onClick={addCategory}
+          className={`${
+            editId ? "bg-green-500" : "bg-blue-500"
+          } text-white px-4 py-2 rounded`}
+          onClick={saveCategory}
         >
-          Add
+          {editId ? "Update" : "Add"}
         </button>
       </div>
 
@@ -67,12 +83,20 @@ export default function Category() {
             className="flex justify-between border-b py-2 items-center"
           >
             <span>{c.name}</span>
-            <button
-              className="bg-red-500 text-white px-2 py-1 rounded"
-              onClick={() => deleteCategory(c.id)}
-            >
-              Delete
-            </button>
+            <div className="flex gap-2">
+              <button
+                className="bg-yellow-500 text-white px-2 py-1 rounded"
+                onClick={() => editCategory(c)}
+              >
+                Edit
+              </button>
+              <button
+                className="bg-red-500 text-white px-2 py-1 rounded"
+                onClick={() => deleteCategory(c.id)}
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>

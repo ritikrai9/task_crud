@@ -6,30 +6,58 @@ export default function Subcategory() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [editId, setEditId] = useState(null); // ✅ for update mode
 
+  // ✅ Fetch Subcategories
   const fetchSubcategories = async () => {
     const res = await axios.get("http://localhost:5000/subcategory");
     setSubcategories(res.data);
   };
 
+  // ✅ Fetch Categories
   const fetchCategories = async () => {
     const res = await axios.get("http://localhost:5000/category/all");
     setCategories(res.data);
   };
 
-  const addSubcategory = async () => {
-    await axios.post("http://localhost:5000/subcategory", {
-      name,
-      category_id: categoryId,
-    });
+  // ✅ Add or Update Subcategory
+  const saveSubcategory = async () => {
+    if (!name || !categoryId) {
+      alert("Please enter all fields");
+      return;
+    }
+
+    if (editId) {
+      // 🔹 Update existing
+      await axios.put(`http://localhost:5000/subcategory/${editId}`, {
+        name,
+        category_id: categoryId,
+      });
+      setEditId(null);
+    } else {
+      // 🔹 Add new
+      await axios.post("http://localhost:5000/subcategory", {
+        name,
+        category_id: categoryId,
+      });
+    }
+
     setName("");
     setCategoryId("");
     fetchSubcategories();
   };
 
+  // ✅ Delete Subcategory
   const deleteSubcategory = async (id) => {
-    await axios.delete(`http://localhost:5000/subcategories/${id}`);
+    await axios.delete(`http://localhost:5000/subcategory/${id}`);
     fetchSubcategories();
+  };
+
+  // ✅ Set subcategory in edit mode
+  const editSubcategory = (sub) => {
+    setName(sub.name);
+    setCategoryId(sub.category_id);
+    setEditId(sub.id);
   };
 
   useEffect(() => {
@@ -38,17 +66,19 @@ export default function Subcategory() {
   }, []);
 
   return (
-    <div className="p-5 bg-white shadow rounded">
+    <div className="p-5 bg-white shadow rounded mt-5 max-w-3xl mx-auto">
       <h2 className="text-xl font-bold mb-3">Subcategories</h2>
+
+      {/* Form */}
       <div className="flex gap-2 mb-3">
         <input
-          className="border p-2"
+          className="border p-2 flex-1 rounded"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Subcategory Name"
         />
         <select
-          className="border p-2"
+          className="border p-2 flex-1 rounded"
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
         >
@@ -60,26 +90,49 @@ export default function Subcategory() {
           ))}
         </select>
         <button
-          className="bg-green-500 text-white px-4 py-2 rounded"
-          onClick={addSubcategory}
+          className={`${
+            editId ? "bg-yellow-500" : "bg-green-500"
+          } text-white px-4 py-2 rounded`}
+          onClick={saveSubcategory}
         >
-          Add
+          {editId ? "Update" : "Add"}
         </button>
       </div>
 
-      <ul>
-        {subcategories.map((s) => (
-          <li key={s.id} className="flex justify-between border-b py-2">
-            {s.name} (Category: {s.category})
-            <button
-              className="bg-red-500 text-white px-2 py-1 rounded"
-              onClick={() => deleteSubcategory(s.id)}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+      {/* Table */}
+      <table className="w-full border">
+        <thead>
+          <tr className="bg-gray-200">
+            <th className="border px-3 py-2">ID</th>
+            <th className="border px-3 py-2">Subcategory</th>
+            <th className="border px-3 py-2">Category</th>
+            <th className="border px-3 py-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {subcategories.map((s) => (
+            <tr key={s.id}>
+              <td className="border px-3 py-2">{s.id}</td>
+              <td className="border px-3 py-2">{s.name}</td>
+              <td className="border px-3 py-2">{s.category}</td>
+              <td className="border px-3 py-2 flex gap-2">
+                <button
+                  className="bg-yellow-500 text-white px-2 py-1 rounded"
+                  onClick={() => editSubcategory(s)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="bg-red-500 text-white px-2 py-1 rounded"
+                  onClick={() => deleteSubcategory(s.id)}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

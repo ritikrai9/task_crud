@@ -10,7 +10,7 @@ const app = express();
 // ✅ CORS config yaha likho
 app.use(cors({
   origin: "http://localhost:5173",  // Vite frontend
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT","PATCH", "DELETE"],
   credentials: true
 }));
 

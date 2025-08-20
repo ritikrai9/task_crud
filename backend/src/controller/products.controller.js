@@ -33,12 +33,20 @@ const createProduct = (req, res) => {
 
 const getProducts = (req, res) => {
   db.query(
-    `SELECT p.id, p.name, p.price, p.description, 
-            s.name AS subcategory, 
-            c.name AS category
-     FROM products p
-     JOIN subcategories s ON p.subcategory_id = s.id
-     JOIN categories c ON s.category_id = c.id`,
+    `SELECT 
+  p.id,
+  p.name,
+  p.price,
+  p.description,
+  p.subcategory_id,
+  s.category_id,
+  c.name AS category,
+  s.name AS subcategory
+FROM products p
+JOIN subcategories s ON p.subcategory_id = s.id
+JOIN categories c ON s.category_id = c.id
+
+`,
     (err, results) => {
       if (err) return res.status(500).json({ error: err });
       res.json(results);
