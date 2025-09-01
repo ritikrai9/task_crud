@@ -7,7 +7,8 @@ const ProductRouter = require("./routes/products.routes");
 
 const app = express();
 
-// ✅ CORS config yaha likho
+// ============= Cors ========================
+
 app.use(cors({
   origin: "http://localhost:5173",  // Vite frontend
   methods: ["GET", "POST", "PUT","PATCH", "DELETE"],

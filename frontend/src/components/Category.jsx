@@ -6,7 +6,8 @@ export default function Category() {
   const [name, setName] = useState("");
   const [editId, setEditId] = useState(null); // ✅ Track which category is being edited
 
-  // ✅ Fetch categories
+// ========================= Fetch categories =========================
+
   const fetchCategories = async () => {
     try {
       const res = await axios.get("http://localhost:5000/category/all");
@@ -16,7 +17,8 @@ export default function Category() {
     }
   };
 
-  // ✅ Add or Update category
+// ================== Add or Update category ============================
+
   const saveCategory = async () => {
     if (!name.trim()) return alert("Please enter category name");
     try {
@@ -35,7 +37,8 @@ export default function Category() {
     }
   };
 
-  // ✅ Delete category
+// =================== Delete category =================
+
   const deleteCategory = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/category/${id}`);
@@ -45,7 +48,8 @@ export default function Category() {
     }
   };
 
-  // ✅ Set edit mode
+// ================ Set edit mode ================
+
   const editCategory = (category) => {
     setName(category.name);
     setEditId(category.id);

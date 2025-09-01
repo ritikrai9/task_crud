@@ -12,7 +12,8 @@ const createCategory = (req, res) => {
   });
 };
 
-// =================== Get All Categories ======================
+
+// =================== Get All Categories ====================
 
 const getCategories = (req, res) => {
   db.query("SELECT * FROM categories", (err, results) => {
@@ -21,7 +22,7 @@ const getCategories = (req, res) => {
   });
 };
 
-// ================= Get Single Category by ID  ===================
+// ================= Get Single Category by ID  ===============
 
 const getCategoryById = (req, res) => {
   const { id } = req.params;
@@ -32,7 +33,7 @@ const getCategoryById = (req, res) => {
   });
 };
 
-// ================== Update Category ==========================
+// ================== Update Category ========================
 
 const updateCategory = (req, res) => {
   const { id } = req.params;
