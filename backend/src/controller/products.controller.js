@@ -1,83 +1,92 @@
-
-const db = require("../db/db");
-
+const Product = require("../models/Product");
+const Subcategory = require("../models/Subcategory");
 
 // ================= Post =============================
+const createProduct = async (req, res) => {
+  try {
+    const { name, price, description, subcategory_id } = req.body;
 
-const createProduct = (req, res) => {
-  const { name, price, description, subcategory_id } = req.body;
-
-  if (!name || !price || !subcategory_id) {
-    return res
-      .status(400)
-      .json({ message: "Name, Price and Subcategory ID are required" });
-  }
-
-  db.query(
-    "INSERT INTO products (name, price, description, subcategory_id) VALUES (?, ?, ?, ?)",
-    [name, price, description, subcategory_id],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json({
-        id: result.insertId,
-        name,
-        price,
-        description,
-        subcategory_id,
+    if (!name || !price || !subcategory_id) {
+      return res.status(400).json({
+        message: "Name, Price and Subcategory ID are required"
       });
     }
-  );
+
+    const product = new Product({ name, price, description, subcategory_id });
+    await product.save();
+
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-// ================= Get=============================
+// ================= Get =============================
+const getProducts = async (req, res) => {
+  try {
+    const products = await Product.find()
+      .populate({
+        path: "subcategory_id",
+        select: "name category_id",
+        populate: { path: "category_id", select: "name" }
+      });
 
-const getProducts = (req, res) => {
-  db.query(
-    `SELECT 
-  p.id,
-  p.name,
-  p.price,
-  p.description,
-  p.subcategory_id,
-  s.category_id,
-  c.name AS category,
-  s.name AS subcategory
-FROM products p
-JOIN subcategories s ON p.subcategory_id = s.id
-JOIN categories c ON s.category_id = c.id
+    // Format response like SQL join output
+    const formatted = products.map(p => ({
+      id: p._id,
+      name: p.name,
+      price: p.price,
+      description: p.description,
+      subcategory_id: p.subcategory_id?._id,
+      category_id: p.subcategory_id?.category_id?._id,
+      category: p.subcategory_id?.category_id?.name,
+      subcategory: p.subcategory_id?.name
+    }));
 
-`,
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json(results);
-    }
-  );
+    res.json(formatted);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
+
 // ================= Update =============================
+const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, price, description, subcategory_id } = req.body;
 
-const updateProduct = (req, res) => {
-  const { id } = req.params;
-  const { name, price, description, subcategory_id } = req.body;
+    const product = await Product.findByIdAndUpdate(
+      id,
+      { name, price, description, subcategory_id },
+      { new: true }
+    );
 
-  db.query(
-    "UPDATE products SET name=?, price=?, description=?, subcategory_id=? WHERE id=?",
-    [name, price, description, subcategory_id, id],
-    (err) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json({ message: "Product Updated" });
-    }
-  );
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    res.json({ message: "Product Updated", product });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // ================= Delete =============================
+const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-const deleteProduct = (req, res) => {
-  const { id } = req.params;
+    const product = await Product.findByIdAndDelete(id);
 
-  db.query("DELETE FROM products WHERE id=?", [id], (err) => {
-    if (err) return res.status(500).json({ error: err });
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
     res.json({ message: "Product Deleted" });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-module.exports = {createProduct,getProducts,updateProduct,deleteProduct,};
+module.exports = {
+  createProduct,
+  getProducts,
+  updateProduct,
+  deleteProduct
+};

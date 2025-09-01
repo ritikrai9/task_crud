@@ -1,62 +1,76 @@
-const db = require("../db/db");
+const Category = require("../models/Category"); // Mongoose model
 
 // ===================== Create Category =====================
+const createCategory = async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ message: "Name is required" });
 
-const createCategory = (req, res) => {
-  const { name } = req.body;
-  if (!name) return res.status(400).json({ message: "Name is required" });
+    const category = new Category({ name });
+    await category.save();
 
-  db.query("INSERT INTO categories (name) VALUES (?)", [name], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ id: result.insertId, name });
-  });
+    res.json(category);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
-
 
 // =================== Get All Categories ====================
-
-const getCategories = (req, res) => {
-  db.query("SELECT * FROM categories", (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(results);
-  });
+const getCategories = async (req, res) => {
+  try {
+    const categories = await Category.find();
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-// ================= Get Single Category by ID  ===============
+// ================= Get Single Category by ID ===============
+const getCategoryById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const category = await Category.findById(id);
 
-const getCategoryById = (req, res) => {
-  const { id } = req.params;
-  db.query("SELECT * FROM categories WHERE id = ?", [id], (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    if (results.length === 0) return res.status(404).json({ message: "Category not found" });
-    res.json(results[0]);
-  });
+    if (!category) return res.status(404).json({ message: "Category not found" });
+    res.json(category);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // ================== Update Category ========================
+const updateCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
 
-const updateCategory = (req, res) => {
-  const { id } = req.params;
-  const { name } = req.body;
+    if (!name) return res.status(400).json({ message: "Name is required" });
 
-  if (!name) return res.status(400).json({ message: "Name is required" });
+    const category = await Category.findByIdAndUpdate(
+      id,
+      { name },
+      { new: true } // return updated document
+    );
 
-  db.query("UPDATE categories SET name = ? WHERE id = ?", [name, id], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Category not found" });
-    res.json({ message: "Category updated successfully" });
-  });
+    if (!category) return res.status(404).json({ message: "Category not found" });
+    res.json({ message: "Category updated successfully", category });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // ======================= Delete Category ====================
-const deleteCategory = (req, res) => {
-  const { id } = req.params;
+const deleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  db.query("DELETE FROM categories WHERE id = ?", [id], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Category not found" });
+    const category = await Category.findByIdAndDelete(id);
+
+    if (!category) return res.status(404).json({ message: "Category not found" });
     res.json({ message: "Category deleted successfully" });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 module.exports = {

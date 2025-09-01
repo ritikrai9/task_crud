@@ -39,9 +39,9 @@ export default function Category() {
 
 // =================== Delete category =================
 
-  const deleteCategory = async (id) => {
+  const deleteCategory = async (_id) => {
     try {
-      await axios.delete(`http://localhost:5000/category/${id}`);
+      await axios.delete(`http://localhost:5000/category/${_id}`);
       fetchCategories();
     } catch (err) {
       console.error("Error deleting category", err);
@@ -52,7 +52,7 @@ export default function Category() {
 
   const editCategory = (category) => {
     setName(category.name);
-    setEditId(category.id);
+    setEditId(category._id);
   };
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function Category() {
       <ul>
         {categories.map((c) => (
           <li
-            key={c.id}
+            key={c._id}
             className="flex justify-between border-b py-2 items-center"
           >
             <span>{c.name}</span>
@@ -96,7 +96,7 @@ export default function Category() {
               </button>
               <button
                 className="bg-red-500 text-white px-2 py-1 rounded"
-                onClick={() => deleteCategory(c.id)}
+                onClick={() => deleteCategory(c._id)}
               >
                 Delete
               </button>

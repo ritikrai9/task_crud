@@ -1,20 +1,17 @@
-const mysql = require("mysql2");
+const mongoose = require("mongoose");
 
+const connectDB = async () => {
+  try {
+    await mongoose.connect("mongodb://localhost:27017/crud", {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
 
-const db = mysql.createConnection({
-  host: "localhost",     
-  user: "root",         
-  password: "12345",          
-  database: "crud"  , 
-  port : 3306  
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error("Database connection failed: ");
-    return;
+    console.log("✅ Connected to MongoDB database");
+  } catch (err) {
+    console.error("❌ Database connection failed:", err.message);
+    process.exit(1); // exit app if db connection fails
   }
-  console.log("Connected to MySQL database");
-});
+};
 
-module.exports = db;
+module.exports = connectDB;
